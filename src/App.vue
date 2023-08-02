@@ -1,0 +1,173 @@
+<template>
+  <div class="bg-[#364559] h-screen flex flex-col">
+    <header class="text-slate-200 flex-initial">
+      <div class="flex p-4 ">
+        <div class="flex-1 mr-4">
+          <div class="p-4 rounded-xl bg-[#3b5b8a] mb-4">
+            <Checkbox v-model="autoRefresh" binary inputId="auto-refresh" class="align-middle"
+                      @change="autoRefreshChanged"/>
+            <label for="auto-refresh" class="ml-2 mr-4">Auto Refresh</label>
+            <InputNumber v-model="refreshInterval" showButtons :disabled="!autoRefresh"
+                         @update:modelValue="refreshIntervalChanged"/>
+          </div>
+          <div class="p-4 rounded-xl bg-[#3b5b8a]">
+            <Button @click="manualRefresh" :label="!fetching ? 'Refresh Deals' : 'Refreshing...'" :disabled="fetching"
+                    :icon="`pi ${fetching? 'pi-spin pi-spinner' : 'pi-refresh'}`" class="w-full"/>
+          </div>
+        </div>
+        <div class="table flex-1 p-2 rounded-xl bg-[#3b5b8a]">
+          <div class="table-row">
+            <div class="table-cell">
+              Maximum price:
+            </div>
+            <div class="table-cell pb-1">
+              <InputNumber v-model="maxPrice" showButtons/>
+            </div>
+            <div class="table-cell">
+              Pages:
+            </div>
+            <div class="table-cell pb-1">
+              <InputNumber v-model="pages" :min="1" :max="10" showButtons/>
+            </div>
+          </div>
+          <div class="table-row">
+            <div class="table-cell">
+              Category:
+            </div>
+            <div class="table-cell pb-1">
+              <Dropdown v-model="category" :options="categories" option-label="name"/>
+            </div>
+            <div class="table-cell">
+              Sort:
+            </div>
+            <div class="table-cell pb-1">
+              <Dropdown v-model="sortMode" :options="sortModes" option-label="name"/>
+            </div>
+          </div>
+          <div class="table-row">
+            <div class="table-cell">
+              Region:
+            </div>
+            <div class="table-cell pb-1">
+              <Dropdown v-model="region" :options="regions" option-label="name"/>
+            </div>
+            <div class="table-cell">
+              Save Mode:
+            </div>
+            <div class="table-cell pb-1">
+              <Dropdown v-model="saveMode" :options="saveModes" option-label="name"/>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="mx-4 h-1 rounded-full bg-zinc-600"/>
+    </header>
+    <Body :deals="deals.filter(deal => deal.price <= maxPrice)" ref="body"/>
+  </div>
+</template>
+
+<script>
+import Checkbox from 'primevue/checkbox';
+import InputNumber from 'primevue/inputnumber';
+import Button from "primevue/button";
+import Dropdown from "primevue/dropdown";
+import Body from './components/Body.vue'
+import { categories } from "@/services/categories";
+import { regions } from "@/services/regions";
+import { sortModes } from "@/services/sortModes";
+import { saveModes } from "@/services/saveModes";
+import { fetchDeals } from "@/services/dealFetcher";
+
+export default {
+  data() {
+    return {
+      timer: null,
+      autoRefresh: true,
+      refreshInterval: 300,
+      fetching: false,
+      maxPrice: 6000,
+      category: categories[0],
+      categories: categories,
+      region: regions[0],
+      regions: regions,
+      sortMode: sortModes[1],
+      sortModes: sortModes,
+      saveMode: saveModes[0],
+      saveModes: saveModes,
+      pages: 3,
+      deals: [],
+    }
+  },
+  created() {
+    this.manualRefresh()
+  },
+  methods: {
+    manualRefresh() {
+      clearInterval(this.timer);
+      this.timer = this.createInterval();
+      if (!this.fetching) {
+        this.fetchDeals();
+      }
+    },
+    createInterval() {
+      return setInterval(this.fetchDeals, this.refreshInterval * 1000);
+    },
+    async fetchDeals() {
+      this.fetching = true;
+
+      const oldDeals = this.deals;
+      const newDeals = await fetchDeals(this.category, this.region, this.pages);
+
+      newDeals.filter((deal) => {
+        for (const d of oldDeals) {
+          if (d.link === deal.link) {
+            return false
+          }
+        }
+        return true
+      }).forEach((deal) => deal.isNew = true)
+      const modifiedDeals = this.saveMode.modify(oldDeals, newDeals);
+      this.sortMode.sort(modifiedDeals);
+
+      this.deals = modifiedDeals
+      this.$refs.body && this.$refs.body.scrollToTop()
+
+      this.fetching = false;
+    },
+    refreshIntervalChanged() {
+      if (this.autoRefresh) {
+        this.manualRefresh()
+      }
+    },
+    autoRefreshChanged() {
+      if (this.autoRefresh) {
+        this.timer = this.createInterval();
+        if (!this.fetching) {
+          this.fetchDeals();
+        }
+      } else {
+        clearInterval(this.timer);
+        this.timer = null;
+      }
+    }
+  },
+  watch: {
+    sortMode(value) {
+      value.sort(this.deals)
+    },
+  },
+  components: {
+    Checkbox,
+    InputNumber,
+    Button,
+    Dropdown,
+    Body,
+  },
+};
+</script>
+
+<style>
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+</style>
