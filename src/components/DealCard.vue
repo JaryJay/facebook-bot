@@ -1,5 +1,5 @@
 <template>
-  <Card class="bg-[#4369a1] hover:bg-[#4471b3] transition-colors text-slate-200 flex-grow h-full" v-if="deal"
+  <Card class="bg-[#5c8ced] hover:bg-[#6d9bf7] transition-colors text-slate-200 flex-grow h-full" v-if="deal"
         @mouseenter="deal.isNew = false">
     <template #header>
       <a :href="deal.link" target="_blank">

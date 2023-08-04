@@ -1,7 +1,7 @@
 <template>
   <div class="p-4 text-slate-200 overflow-auto h-auto flex flex-col flex-auto" ref="container">
     <span id="top" class="hidden"></span>
-    <div class="grid xl:grid-cols-4 md:grid-cols-2 grid-cols-1 gap-8 p-4 rounded-xl bg-[#3b5b8a]">
+    <div class="grid xl:grid-cols-4 md:grid-cols-2 grid-cols-1 gap-8 p-4 rounded-xl bg-[#537ac9]">
       <div v-for="(deal, i) in deals" key="i" class="">
         <DealCard :deal="deal" :key="deal.title + deal.description"/>
       </div>

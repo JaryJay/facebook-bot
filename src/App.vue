@@ -1,41 +1,27 @@
 <template>
-  <div class="bg-[#364559] h-screen flex flex-col">
+  <div class="bg-[#4267B2] h-screen flex flex-col">
     <header class="text-slate-200 flex-initial">
       <div class="flex p-4 ">
         <div class="flex-1 mr-4">
-          <div class="p-4 rounded-xl bg-[#3b5b8a] mb-4">
+          <div class="p-4 rounded-xl bg-[#537ac9] mb-4">
             <Checkbox v-model="autoRefresh" binary inputId="auto-refresh" class="align-middle"
                       @change="autoRefreshChanged"/>
             <label for="auto-refresh" class="ml-2 mr-4">Auto Refresh</label>
             <InputNumber v-model="refreshInterval" showButtons :disabled="!autoRefresh"
                          @update:modelValue="refreshIntervalChanged"/>
           </div>
-          <div class="p-4 rounded-xl bg-[#3b5b8a]">
+          <div class="p-4 rounded-xl bg-[#537ac9]">
             <Button @click="manualRefresh" :label="!fetching ? 'Refresh Deals' : 'Refreshing...'" :disabled="fetching"
                     :icon="`pi ${fetching? 'pi-spin pi-spinner' : 'pi-refresh'}`" class="w-full"/>
           </div>
         </div>
-        <div class="table flex-1 p-2 rounded-xl bg-[#3b5b8a]">
+        <div class="table flex-1 p-2 rounded-xl bg-[#537ac9]">
           <div class="table-row">
             <div class="table-cell">
               Maximum price:
             </div>
             <div class="table-cell pb-1">
               <InputNumber v-model="maxPrice" showButtons/>
-            </div>
-            <div class="table-cell">
-              Pages:
-            </div>
-            <div class="table-cell pb-1">
-              <InputNumber v-model="pages" :min="1" :max="10" showButtons/>
-            </div>
-          </div>
-          <div class="table-row">
-            <div class="table-cell">
-              Category:
-            </div>
-            <div class="table-cell pb-1">
-              <Dropdown v-model="category" :options="categories" option-label="name"/>
             </div>
             <div class="table-cell">
               Sort:
@@ -46,16 +32,28 @@
           </div>
           <div class="table-row">
             <div class="table-cell">
-              Region:
+              Category:
             </div>
             <div class="table-cell pb-1">
-              <Dropdown v-model="region" :options="regions" option-label="name"/>
+              <Dropdown v-model="category" :options="categories" option-label="name"/>
             </div>
             <div class="table-cell">
               Save Mode:
             </div>
             <div class="table-cell pb-1">
               <Dropdown v-model="saveMode" :options="saveModes" option-label="name"/>
+            </div>
+          </div>
+          <div class="table-row">
+            <div class="table-cell">
+              Region:
+            </div>
+            <div class="table-cell pb-1">
+              <Dropdown v-model="region" :options="regions" option-label="name"/>
+            </div>
+            <div class="table-cell">
+            </div>
+            <div class="table-cell pb-1">
             </div>
           </div>
         </div>
@@ -86,15 +84,14 @@ export default {
       refreshInterval: 300,
       fetching: false,
       maxPrice: 6000,
-      category: categories[0],
+      category: categories[2],
       categories: categories,
       region: regions[0],
       regions: regions,
-      sortMode: sortModes[1],
+      sortMode: sortModes[0],
       sortModes: sortModes,
       saveMode: saveModes[0],
       saveModes: saveModes,
-      pages: 3,
       deals: [],
     }
   },
@@ -116,7 +113,7 @@ export default {
       this.fetching = true;
 
       const oldDeals = this.deals;
-      const newDeals = await fetchDeals(this.category, this.region, this.pages);
+      const newDeals = await fetchDeals(this.category, this.region, 2);
 
       newDeals.filter((deal) => {
         for (const d of oldDeals) {
@@ -129,8 +126,11 @@ export default {
       const modifiedDeals = this.saveMode.modify(oldDeals, newDeals);
       this.sortMode.sort(modifiedDeals);
 
+      console.log(modifiedDeals)
+
       this.deals = modifiedDeals
       this.$refs.body && this.$refs.body.scrollToTop()
+      console.log(`Fetched ${this.deals.length} deals`)
 
       this.fetching = false;
     },

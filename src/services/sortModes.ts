@@ -7,15 +7,14 @@ export interface SortMode {
 
 export const sortModes: SortMode[] = [
   {
-    name: "Date Posted",
+    name: "Original Order",
     sort(deals: Deal[]) {
-      deals.sort((a, b) => a.date.getTime() - b.date.getTime())
     }
   },
   {
-    name: "Date Posted (Desc.)",
+    name: "Reverse",
     sort(deals: Deal[]) {
-      deals.sort((a, b) => b.date.getTime() - a.date.getTime())
+      deals.reverse()
     }
   },
   {

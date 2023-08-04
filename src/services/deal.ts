@@ -7,7 +7,7 @@ export interface Deal {
   title: string;
   description: string;
   location: string;
-  date: Date,
+  date?: Date,
   datePosted: string;
   category: Category;
   isNew: boolean;
