@@ -7,9 +7,11 @@
       </a>
     </template>
     <template #title>
-      <span v-if="deal.isNew" class="bg-emerald-400 rounded-full text-sm p-1 mr-1">New!</span>
-      <span v-if="deal.price !== -1" class="text-green-300 text-lg">${{ deal.price }}&nbsp;</span>
-      <a :href="deal.link" target=”_blank” class="text-lg">{{ title }}</a>
+      <div class="truncate">
+        <span v-if="deal.isNew" class="bg-emerald-400 rounded-full text-sm p-1 mr-1">New!</span>
+        <span v-if="deal.price !== -1" class="text-green-300 text-lg">${{ deal.price }}&nbsp;</span>
+        <a :href="deal.link" target=”_blank” class="text-lg">{{ deal.title }}</a>
+      </div>
     </template>
     <template #subtitle>
       <span class="text-slate-300">
@@ -33,13 +35,6 @@ export default {
     deal: { type: Object as PropType<Deal> },
   },
   computed: {
-    title() {
-      const t = this.deal?.title
-      if (!t || t.length < 50) {
-        return t
-      }
-      return t.substring(0, 48) + "..."
-    },
     description() {
       const t = this.deal?.description
       if (!t || t.length < 100) {

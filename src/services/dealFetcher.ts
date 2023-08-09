@@ -3,45 +3,49 @@ import { Deal } from "./deal";
 import { Region } from "./regions";
 
 const { Builder, Browser, By, Key, until, WebDriver } = require("selenium-webdriver")
+const chrome = require("selenium-webdriver/chrome")
 
-let driver: typeof WebDriver | undefined
 
 function generateUrl(category: Category, region: Region): string {
   if (category.all) {
     return `https://www.facebook.com/marketplace/${region.areaID}`;
   } else {
-    return `https://www.facebook.com/marketplace/${region.areaID}/search/?daysSinceListed=1&query=${category.keyword.replace(' ', '%20')}&exact=false`;
+    return `https://www.facebook.com/marketplace/${region.areaID}/search/?daysSinceListed=1&sortBy=creation_time_descend&query=${category.keyword.replace(' ', '%20')}&exact=false`;
   }
 }
 
 export async function fetchDeals(category: Category, region: Region, amount: number): Promise<Deal[]> {
-  if (!driver) {
-    driver = await new Builder().forBrowser(Browser.CHROME).build()
-  }
   const deals: Deal[] = [];
+
+  const driver = await new Builder()
+    .forBrowser(Browser.CHROME)
+    .setChromeOptions(new chrome.Options().headless())
+    .build()
   const url: string = generateUrl(category, region);
+  console.log(`Fetching ${url}`)
   await driver.get(url)
   await driver.manage().window().setRect({ x: 0, y: 0, width: 1920, height: 1060 })
-  await driver.wait(until.elementLocated(By.css("div.x1gslohp.x1e56ztr")), 1000);
+  await driver.wait(until.elementLocated(By.css("div.x1gslohp.x1e56ztr")), 10 * 1000);
 
   for (let i = 0; i < amount; i++) {
     await driver.executeScript("window.scrollTo(0, document.body.scrollHeight);")
-    // Wait 5 ms
+    // Wait 1 second
     await new Promise(r => setTimeout(r, 1000));
   }
 
   const document = new DOMParser().parseFromString(await driver.getPageSource(), "text/html");
 
+  await driver.quit()
 
-  const div = document.querySelectorAll("div.x9f619.x78zum5.x1r8uery.xdt5ytf.x1iyjqo2.xs83m0k.x1e558r4.x150jy0e.xnpuxes.x291uyu.x1uepa24.x1iorvi4.xjkvuk6")
+  const div = document.querySelectorAll("div.x78zum5.x1r8uery.xdt5ytf.x1iyjqo2.xs83m0k.x1e558r4.x150jy0e")
 
   div.forEach((el, key, _) => {
     try {
       const link = el.querySelector('div.x3ct3a4 a.x1i10hfl')?.attributes.getNamedItem("href")?.value
       const imageLink = el.querySelector('img.xt7dq6l.xl1xv1r.x10wlt62.xh8yej3')?.attributes.getNamedItem("src")?.value
       const title = el.querySelector('span.x10wlt62.x1n2onr6')?.textContent
-      const price = el.querySelector('span.x193iq5w.xeuugli.x13faqbe.x1vvkbs.x1xmvt09.x1s928wv.xhkezso.x1gmr53x.x1cpjm7i.x1fgarty.x1943h6x.xudqn12.x676frb.x1lkfr7t.x1lbecb7.x1s688f.xzsf02u')?.textContent?.trim().toLowerCase() || "0"
-      const url = el.querySelector('a.xjbqb8w.x6umtig.x1b1mbwd.xaqea5y.xav7gou.x9f619.x1ypdohk.xt0psk2.xe8uvvx.xdj266r.x11i5rnm.xat24cr.x1mh8g0r.xexx8yu.x4uap5')?.attributes.getNamedItem("href")?.value
+      const price = el.querySelector('span.x193iq5w.xeuugli.x13faqbe.x1vvkbs')?.textContent?.trim().toLowerCase() || "0"
+      const url = el.querySelector('a.xjbqb8w.x6umtig.x1b1mbwd.xaqea5y.xav7gou')?.attributes.getNamedItem("href")?.value
       const location = el.querySelector('span.x10wlt62.x1n2onr6.xlyipyv.xuxw1ft.x1j85h84')?.textContent
       const deal: Deal = {
         price: price === "free" ? 0 : parseInt(price.replace(/[Cc,$]/g, ""), 10),
@@ -55,7 +59,6 @@ export async function fetchDeals(category: Category, region: Region, amount: num
         category: category,
         isNew: false,
       }
-      console.log(`Parsed price string '${price}' into '${deal.price}'`)
       deals.push(deal)
     } catch (exception) {
     }
