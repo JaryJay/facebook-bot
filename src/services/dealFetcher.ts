@@ -1,37 +1,65 @@
 import { Category } from "./categories";
 import { Deal } from "./deal";
 import { Region } from "./regions";
+import { FetchMode } from "./fetchModes";
 
 const { Builder, Browser, By, Key, until, WebDriver } = require("selenium-webdriver")
 const chrome = require("selenium-webdriver/chrome")
 
 
-function generateUrl(category: Category, region: Region): string {
+function generateUrl(category: Category, region: Region, fetchMode: FetchMode): string {
   if (category.all) {
     return `https://www.facebook.com/marketplace/${region.areaID}`;
   } else {
-    return `https://www.facebook.com/marketplace/${region.areaID}/search/?daysSinceListed=1&sortBy=creation_time_descend&query=${category.keyword.replace(' ', '%20')}&exact=false`;
+    const sortBy = fetchMode.code.length ? `&sortBy=${fetchMode.code}` : ""
+    return `https://www.facebook.com/marketplace/${region.areaID}/search/?daysSinceListed=1${sortBy}&query=${category.keyword.replace(' ', '%20')}&exact=false`;
   }
 }
 
-export async function fetchDeals(category: Category, region: Region, amount: number): Promise<Deal[]> {
+const funnyMessages = [
+  "Contacting Mark Zuckerberg...",
+  "Hacking into the mainframe...",
+  "Fetching confidential information...",
+  "Injecting SQL...",
+  "Filtering out viruses...",
+  "Enhance, enhance, enhance!",
+  "Leaving \"normal facebook users\" in the dust...",
+  "Doing some crazy javascript magic..."
+]
+
+function setStatus(fetchStatus: { s: string }, status: string, enableFunny = false) {
+  // 2% chance of displaying a funny message :)
+  if (enableFunny && Math.random() < 0.02) {
+    fetchStatus.s = funnyMessages[Math.floor(Math.random() * funnyMessages.length + 1)]
+  } else {
+    fetchStatus.s = status
+  }
+}
+
+export async function fetchDeals(category: Category, region: Region, fetchMode: FetchMode, amount: number, fetchStatus: { s: string }): Promise<Deal[]> {
   const deals: Deal[] = [];
+
+  setStatus(fetchStatus, "Initializing...")
 
   const driver = await new Builder()
     .forBrowser(Browser.CHROME)
     .setChromeOptions(new chrome.Options().headless())
     .build()
-  const url: string = generateUrl(category, region);
+  const url: string = generateUrl(category, region, fetchMode);
   console.log(`Fetching ${url}`)
   await driver.get(url)
   await driver.manage().window().setRect({ x: 0, y: 0, width: 1920, height: 1060 })
   await driver.wait(until.elementLocated(By.css("div.x1gslohp.x1e56ztr")), 10 * 1000);
+
+  setStatus(fetchStatus, "Downloading deals...", true)
 
   for (let i = 0; i < amount; i++) {
     await driver.executeScript("window.scrollTo(0, document.body.scrollHeight);")
     // Wait 1 second
     await new Promise(r => setTimeout(r, 1000));
   }
+
+  setStatus(fetchStatus, "Refreshing...")
 
   const document = new DOMParser().parseFromString(await driver.getPageSource(), "text/html");
 
@@ -59,11 +87,15 @@ export async function fetchDeals(category: Category, region: Region, amount: num
         category: category,
         isNew: false,
       }
-      deals.push(deal)
+      if (deal.price === 143) {
+        console.log(`Deleting deal "${title}" because its price is $143.`)
+      } else {
+        deals.push(deal)
+      }
     } catch (exception) {
     }
   })
-  deals.sort((a, b) => a.link.localeCompare(b.link))
+  // deals.sort((a, b) => a.link.localeCompare(b.link))
   for (let i = deals.length - 1; i >= 1; i--) {
     if (deals[i].link === deals[i - 1].link) {
       deals.splice(i, 1)
@@ -71,3 +103,4 @@ export async function fetchDeals(category: Category, region: Region, amount: num
   }
   return deals;
 }
+

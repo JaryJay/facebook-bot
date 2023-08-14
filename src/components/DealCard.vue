@@ -15,11 +15,10 @@
     </template>
     <template #subtitle>
       <span class="text-slate-300">
-        {{ deal.datePosted }} - {{ deal.location }}
+        {{ deal.location }}
       </span>
     </template>
     <template #content>
-      {{ description }}
     </template>
   </Card>
 </template>

@@ -11,7 +11,7 @@
                          @update:modelValue="refreshIntervalChanged"/>
           </div>
           <div class="p-4 rounded-xl bg-[#537ac9]">
-            <Button @click="manualRefresh" :label="!fetching ? 'Refresh Deals' : 'Refreshing...'" :disabled="fetching"
+            <Button @click="manualRefresh" :label="!fetching ? 'Refresh Deals' : fetchStatus.s" :disabled="fetching"
                     :icon="`pi ${fetching? 'pi-spin pi-spinner' : 'pi-refresh'}`" class="w-full"/>
           </div>
         </div>
@@ -24,10 +24,10 @@
               <InputNumber v-model="maxPrice" showButtons/>
             </div>
             <div class="table-cell">
-              Sort:
+              Fetch Mode:
             </div>
             <div class="table-cell pb-1">
-              <Dropdown v-model="sortMode" :options="sortModes" option-label="name"/>
+              <Dropdown v-model="fetchMode" :options="fetchModes" option-label="name"/>
             </div>
           </div>
           <div class="table-row">
@@ -38,10 +38,10 @@
               <Dropdown v-model="category" :options="categories" option-label="name"/>
             </div>
             <div class="table-cell">
-              Save Mode:
+              Sort:
             </div>
             <div class="table-cell pb-1">
-              <Dropdown v-model="saveMode" :options="saveModes" option-label="name"/>
+              <Dropdown v-model="sortMode" :options="sortModes" option-label="name"/>
             </div>
           </div>
           <div class="table-row">
@@ -52,8 +52,10 @@
               <Dropdown v-model="region" :options="regions" option-label="name"/>
             </div>
             <div class="table-cell">
+              Save Mode:
             </div>
             <div class="table-cell pb-1">
+              <Dropdown v-model="saveMode" :options="saveModes" option-label="name"/>
             </div>
           </div>
         </div>
@@ -72,6 +74,7 @@ import Dropdown from "primevue/dropdown";
 import Body from './components/Body.vue'
 import { categories } from "@/services/categories";
 import { regions } from "@/services/regions";
+import { fetchModes } from "@/services/fetchModes";
 import { sortModes } from "@/services/sortModes";
 import { saveModes } from "@/services/saveModes";
 import { fetchDeals } from "@/services/dealFetcher";
@@ -83,11 +86,14 @@ export default {
       autoRefresh: true,
       refreshInterval: 300,
       fetching: false,
+      fetchStatus: { s: "" },
       maxPrice: 6000,
       category: categories[2],
       categories: categories,
       region: regions[0],
       regions: regions,
+      fetchMode: fetchModes[2],
+      fetchModes: fetchModes,
       sortMode: sortModes[0],
       sortModes: sortModes,
       saveMode: saveModes[0],
@@ -113,7 +119,7 @@ export default {
       this.fetching = true;
 
       const oldDeals = this.deals;
-      const newDeals = await fetchDeals(this.category, this.region, 2);
+      const newDeals = await fetchDeals(this.category, this.region, this.fetchMode, 3, this.fetchStatus);
 
       newDeals.filter((deal) => {
         for (const d of oldDeals) {
