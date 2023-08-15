@@ -88,7 +88,7 @@ export default {
       fetching: false,
       fetchStatus: { s: "" },
       maxPrice: 6000,
-      category: categories[2],
+      category: categories[1],
       categories: categories,
       region: regions[0],
       regions: regions,
@@ -129,8 +129,8 @@ export default {
         }
         return true
       }).forEach((deal) => deal.isNew = true)
-      const modifiedDeals = this.saveMode.modify(oldDeals, newDeals);
-      this.sortMode.sort(modifiedDeals);
+      let modifiedDeals = this.saveMode.modify(oldDeals, newDeals);
+      modifiedDeals = this.sortMode.sort(modifiedDeals);
 
       console.log(modifiedDeals)
 
@@ -159,7 +159,7 @@ export default {
   },
   watch: {
     sortMode(value) {
-      value.sort(this.deals)
+      this.deals = value.sort(this.deals)
     },
   },
   components: {

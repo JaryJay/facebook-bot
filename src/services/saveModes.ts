@@ -7,7 +7,7 @@ export interface SaveMode {
 
 export const saveModes: SaveMode[] = [
   {
-    name: "Last 300 deals",
+    name: "Last 800 deals",
     modify: (oldDeals, newDeals) => {
       const allDeals = [...newDeals];
       for (let i = 0; i < oldDeals.length; i++) {
@@ -17,24 +17,24 @@ export const saveModes: SaveMode[] = [
           allDeals.push(d)
         }
       }
-      return allDeals.slice(-300)
+      return allDeals.slice(-800)
     }
   },
-  {
-    name: "Last 3 hours",
-    modify: (oldDeals, newDeals) => {
-      const allDeals = [...newDeals];
-      for (let i = 0; i < oldDeals.length; i++) {
-        const d = oldDeals[i]
-        if (newDeals.filter(n => n.link === d.link).length === 0) {
-          // New deals doesn't contain old deal
-          allDeals.push(d)
-        }
-      }
-      return allDeals
-        .filter(deal => deal.date ? Date.now() - deal.date?.getTime() || 0 <= 4 * 60 * 60 * 1000 : true)
-    }
-  },
+  // {
+  //   name: "Last 3 hours",
+  //   modify: (oldDeals, newDeals) => {
+  //     const allDeals = [...newDeals];
+  //     for (let i = 0; i < oldDeals.length; i++) {
+  //       const d = oldDeals[i]
+  //       if (newDeals.filter(n => n.link === d.link).length === 0) {
+  //         // New deals doesn't contain old deal
+  //         allDeals.push(d)
+  //       }
+  //     }
+  //     return allDeals
+  //       .filter(deal => deal.date ? Date.now() - deal.date?.getTime() || 0 <= 4 * 60 * 60 * 1000 : true)
+  //   }
+  // },
   {
     name: "All",
     modify: (oldDeals, newDeals) => {

@@ -1,4 +1,4 @@
-import { Category } from "./categories";
+import { Category, categories } from "./categories";
 import { Deal } from "./deal";
 import { Region } from "./regions";
 import { FetchMode } from "./fetchModes";
@@ -39,7 +39,16 @@ function setStatus(fetchStatus: { s: string }, status: string, enableFunny = fal
 export async function fetchDeals(category: Category, region: Region, fetchMode: FetchMode, amount: number, fetchStatus: { s: string }): Promise<Deal[]> {
   const deals: Deal[] = [];
 
-  setStatus(fetchStatus, "Initializing...")
+  if (category.custom) {
+    // From Phones to iPhones
+    for (let i = 2; i < categories.length; i++) {
+      const cat = categories[i]
+      deals.push(...await fetchDeals(cat, region, fetchMode, 1, fetchStatus))
+    }
+    return deals
+  }
+
+  setStatus(fetchStatus, `Preparing to fetch ${category.name}...`)
 
   const driver = await new Builder()
     .forBrowser(Browser.CHROME)
@@ -75,6 +84,9 @@ export async function fetchDeals(category: Category, region: Region, fetchMode: 
       const price = el.querySelector('span.x193iq5w.xeuugli.x13faqbe.x1vvkbs')?.textContent?.trim().toLowerCase() || "0"
       const url = el.querySelector('a.xjbqb8w.x6umtig.x1b1mbwd.xaqea5y.xav7gou')?.attributes.getNamedItem("href")?.value
       const location = el.querySelector('span.x10wlt62.x1n2onr6.xlyipyv.xuxw1ft.x1j85h84')?.textContent
+      if (!link) {
+        return
+      }
       const deal: Deal = {
         price: price === "free" ? 0 : parseInt(price.replace(/[Cc,$]/g, ""), 10),
         link: "https://www.facebook.com" + link,

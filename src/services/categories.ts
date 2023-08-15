@@ -34,5 +34,5 @@ export const categories: Category[] = [
   { name: 'Herman Miller', keyword: 'herman miller' },
   { name: 'GPU', keyword: 'GPU' },
   { name: 'Graphics Cards', keyword: 'graphics card' },
-  { name: 'Iphones', keyword: 'iphone' },
+  { name: 'iPhones', keyword: 'iphone' },
 ]

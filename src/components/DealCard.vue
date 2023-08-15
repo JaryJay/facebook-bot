@@ -19,6 +19,7 @@
       </span>
     </template>
     <template #content>
+      Category: {{ deal.category.name }}
     </template>
   </Card>
 </template>
