@@ -40,11 +40,14 @@ export async function fetchDeals(category: Category, region: Region, fetchMode: 
   const deals: Deal[] = [];
 
   if (category.custom) {
+    const promises: Promise<Deal[]>[] = []
     // From Phones to iPhones
     for (let i = 2; i < categories.length; i++) {
       const cat = categories[i]
-      deals.push(...await fetchDeals(cat, region, fetchMode, 1, fetchStatus))
+      promises.push(fetchDeals(cat, region, fetchMode, 1, fetchStatus))
     }
+    const dealsList = await Promise.all(promises)
+    dealsList.forEach(dealsList => deals.push(...dealsList))
     return deals
   }
 
