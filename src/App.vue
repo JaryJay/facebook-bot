@@ -88,7 +88,7 @@ export default {
       fetching: false,
       fetchStatus: { s: "" },
       maxPrice: 6000,
-      category: categories[1],
+      category: categories[2],
       categories: categories,
       region: regions[0],
       regions: regions,
@@ -131,8 +131,6 @@ export default {
       }).forEach((deal) => deal.isNew = true)
       let modifiedDeals = this.saveMode.modify(oldDeals, newDeals);
       modifiedDeals = this.sortMode.sort(modifiedDeals);
-
-      console.log(modifiedDeals)
 
       this.deals = modifiedDeals
       this.$refs.body && this.$refs.body.scrollToTop()

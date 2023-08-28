@@ -11,8 +11,8 @@ function generateUrl(category: Category, region: Region, fetchMode: FetchMode): 
   if (category.all) {
     return `https://www.facebook.com/marketplace/${region.areaID}`;
   } else {
-    const sortBy = fetchMode.code.length ? `&sortBy=${fetchMode.code}` : ""
-    return `https://www.facebook.com/marketplace/${region.areaID}/search/?daysSinceListed=1${sortBy}&query=${category.keyword.replace(' ', '%20')}&exact=false`;
+    const sortBy = fetchMode.code.length ? `sortBy=${fetchMode.code}&` : ""
+    return `https://www.facebook.com/marketplace/${region.areaID}/search/?query=${category.keyword.replace(' ', '%20')}&exact=false`;
   }
 }
 
@@ -63,10 +63,35 @@ export async function fetchDeals(category: Category, region: Region, fetchMode: 
     setStatus(fetchStatus, `Accessing webpage for ${category.name}...`)
     await driver.get(url)
     await driver.manage().window().setRect({ x: 0, y: 0, width: 1920, height: 1060 })
-    setStatus(fetchStatus, `Waiting for page to load for ${category.name}...`)
-    await driver.wait(until.elementLocated(By.css("div.x1gslohp.x1e56ztr")), 10 * 1000);
 
-    setStatus(fetchStatus, "Downloading deals...", true)
+    setStatus(fetchStatus, `Applying fetch settings for ${category.name}...`)
+
+    try {
+      await driver.wait(until.elementLocated(By.css("div.x1iyjqo2.xl56j7k.xshlqvt")), 2 * 1000)
+      await driver.executeScript('return document.querySelectorAll("div.x1n2onr6.x1vjfegm")[1].remove();')
+    } catch (e) {
+    }
+
+    // Click distance filter
+    await driver.wait(until.elementLocated(By.css("div.x1i10hfl.x1xmf6yo")), 10 * 1000)
+
+    const distanceFilterButton = await driver.findElement(By.css("div.x1i10hfl.x1xmf6yo"))
+    await new Promise(r => setTimeout(r, 100));
+    await distanceFilterButton.click()
+
+    // Click "Radius" dropdown
+    await driver.wait(until.elementLocated(By.css("label.x1ypdohk")), 10 * 1000)
+    await (await driver.findElement(By.css("label.x1ypdohk"))).click()
+
+    // Click "20 km"
+    await driver.wait(until.elementLocated(By.css("div.x6umtig.x1ja2u2z")), 200)
+    await (await driver.findElements(By.css("div.x6umtig.x1ja2u2z")))[4].click()
+
+    await (await driver.findElement(By.css("div.xjbqb8w.x6umtig[aria-label=\"Apply\"]"))).click() // Click Apply
+    await (await driver.findElement(By.css("div.xqvfhly"))).click() // Click Sort By
+    await (await driver.findElements(By.css("div.x1lliihq")))[fetchMode.index].click() // Click fetch mode
+
+    setStatus(fetchStatus, `Downloading deals from ${category.name}...`, true)
 
     for (let i = 0; i < amount; i++) {
       await driver.executeScript("window.scrollTo(0, document.body.scrollHeight);")
@@ -88,7 +113,6 @@ export async function fetchDeals(category: Category, region: Region, fetchMode: 
         const imageLink = el.querySelector('img.xt7dq6l.xl1xv1r.x10wlt62.xh8yej3')?.attributes.getNamedItem("src")?.value
         const title = el.querySelector('span.x10wlt62.x1n2onr6')?.textContent
         const price = el.querySelector('span.x193iq5w.xeuugli.x13faqbe.x1vvkbs')?.textContent?.trim().toLowerCase() || "0"
-        const url = el.querySelector('a.xjbqb8w.x6umtig.x1b1mbwd.xaqea5y.xav7gou')?.attributes.getNamedItem("href")?.value
         const location = el.querySelector('span.x10wlt62.x1n2onr6.xlyipyv.xuxw1ft.x1j85h84')?.textContent
         if (!link) {
           return
