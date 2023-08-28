@@ -1,4 +1,4 @@
-import { Category, categories } from "./categories";
+import { categories, Category } from "./categories";
 import { Deal } from "./deal";
 import { Region } from "./regions";
 import { FetchMode } from "./fetchModes";
@@ -41,13 +41,23 @@ export async function fetchDeals(category: Category, region: Region, fetchMode: 
 
   if (category.custom) {
     const promises: Promise<Deal[]>[] = []
-    // From Phones to iPhones
-    for (let i = 2; i < categories.length; i++) {
+    const midIndex = (categories.length - 2) / 2
+
+    // Do first half
+    for (let i = 2; i < midIndex; i++) {
       const cat = categories[i]
       promises.push(fetchDeals(cat, region, fetchMode, 1, fetchStatus))
     }
-    const dealsList = await Promise.all(promises)
-    dealsList.forEach(dealsList => deals.push(...dealsList))
+    (await Promise.all(promises)).forEach(dealsList => deals.push(...dealsList))
+
+    // Do second half
+    promises.length = 0
+    for (let i = midIndex; i < categories.length; i++) {
+      const cat = categories[i]
+      promises.push(fetchDeals(cat, region, fetchMode, 1, fetchStatus))
+    }
+    (await Promise.all(promises)).forEach(dealsList => deals.push(...dealsList))
+
     return deals
   }
 
@@ -90,6 +100,9 @@ export async function fetchDeals(category: Category, region: Region, fetchMode: 
     await (await driver.findElement(By.css("div.xjbqb8w.x6umtig[aria-label=\"Apply\"]"))).click() // Click Apply
     await (await driver.findElement(By.css("div.xqvfhly"))).click() // Click Sort By
     await (await driver.findElements(By.css("div.x1lliihq")))[fetchMode.index].click() // Click fetch mode
+
+    // await (await driver.findElements(By.css("div.xqvfhly")))[3].click() // Click Date Listed
+    // await (await (await driver.findElements(By.css("div.xb57i2i.xxqldzo")))[3].findElements(By.css("div.x1lliihq")))[1].click()
 
     setStatus(fetchStatus, `Downloading deals from ${category.name}...`, true)
 
