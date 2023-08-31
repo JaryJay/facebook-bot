@@ -89,7 +89,7 @@ export default {
       fetching: false,
       fetchStatus: { s: "" },
       maxPrice: 6000,
-      category: categories[10],
+      category: categories[1],
       categories: categories,
       region: regions[0],
       regions: regions,
@@ -112,17 +112,35 @@ export default {
         this.timer = this.createInterval();
       }
       if (!this.fetching) {
-        this.fetchDeals();
+        this.fetchDealsWithRetries();
       }
     },
     createInterval() {
-      return setInterval(this.fetchDeals, this.refreshInterval * 1000);
+      return setInterval(this.fetchDealsWithRetries, this.refreshInterval * 1000);
+    },
+    async fetchDealsWithRetries() {
+      let success = false
+      while (!success) {
+        try {
+          await this.fetchDeals()
+          success = true
+        } catch (e) {
+          console.log("Retrying after 1 second")
+          this.fetchStatus.s = "An error occurred. Retrying..."
+          // Wait 1 second
+          await new Promise(r => setTimeout(r, 1000));
+        }
+      }
     },
     async fetchDeals() {
       this.fetching = true;
 
       const oldDeals = this.deals;
-      const newDeals = filterRegions(await fetchDeals(this.category, this.region, this.fetchMode, 3, this.fetchStatus));
+      const _newDeals = await fetchDeals(this.category, this.region, this.fetchMode, 3, this.fetchStatus)
+      if (!_newDeals) {
+        throw new Error("An error was encountered")
+      }
+      const newDeals = filterRegions(_newDeals);
 
       newDeals.filter((deal) => {
         for (const d of oldDeals) {

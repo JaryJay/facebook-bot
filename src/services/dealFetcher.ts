@@ -48,21 +48,19 @@ async function waitUntilDialogCloses(driver, timeout: number) {
   for (let i = 0; i < timeout / 10; i++) {
     try {
       await driver.wait(until.elementLocated(By.css("div.x1n2onr6.xzkaem6")), 10)
-      return
     } catch (e) {
+      return
     }
   }
   return
 }
 
-export async function fetchDeals(category: Category, region: Region, fetchMode: FetchMode, amount: number, fetchStatus: { s: string }): Promise<Deal[]> {
+export async function fetchDeals(category: Category, region: Region, fetchMode: FetchMode, amount: number, fetchStatus: { s: string }): Promise<Deal[] | null> {
   const deals: Deal[] = [];
 
   if (category.custom) {
-
-    console.log("FetCHING CUSTOM!!")
     const promises: Promise<Deal[]>[] = []
-    const midIndex = (categories.length - 2) / 2
+    const midIndex = (categories.length - 2) / 2 + 2
 
     // Do first half
     for (let i = 2; i < midIndex; i++) {
@@ -87,7 +85,7 @@ export async function fetchDeals(category: Category, region: Region, fetchMode: 
   try {
     const driver = await new Builder()
       .forBrowser(Browser.CHROME)
-      .setChromeOptions(new chrome.Options())
+      .setChromeOptions(new chrome.Options().headless())
       .build()
     const url: string = generateUrl(category, region, fetchMode);
     console.log(`Fetching ${url}`)
@@ -179,9 +177,8 @@ export async function fetchDeals(category: Category, region: Region, fetchMode: 
     }
     return deals;
   } catch (e: any) {
-    alert(`Hey! An error has occurred while fetching ${category.name}.\n${e.message}\n${e.stack}`)
     console.error(`Hey! An error has occurred while fetching ${category.name}.\n${e.message}\n${e.stack}`)
-    return []
+    return null
   }
 }
 
