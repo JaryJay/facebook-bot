@@ -75,6 +75,7 @@ import Body from './components/Body.vue'
 import { categories } from "@/services/categories";
 import { regions } from "@/services/regions";
 import { fetchModes } from "@/services/fetchModes";
+import { filterRegions } from "@/services/filterRegions";
 import { sortModes } from "@/services/sortModes";
 import { saveModes } from "@/services/saveModes";
 import { fetchDeals } from "@/services/dealFetcher";
@@ -88,7 +89,7 @@ export default {
       fetching: false,
       fetchStatus: { s: "" },
       maxPrice: 6000,
-      category: categories[1],
+      category: categories[10],
       categories: categories,
       region: regions[0],
       regions: regions,
@@ -106,8 +107,10 @@ export default {
   },
   methods: {
     manualRefresh() {
-      clearInterval(this.timer);
-      this.timer = this.createInterval();
+      if (this.autoRefresh) {
+        clearInterval(this.timer);
+        this.timer = this.createInterval();
+      }
       if (!this.fetching) {
         this.fetchDeals();
       }
@@ -119,7 +122,7 @@ export default {
       this.fetching = true;
 
       const oldDeals = this.deals;
-      const newDeals = await fetchDeals(this.category, this.region, this.fetchMode, 3, this.fetchStatus);
+      const newDeals = filterRegions(await fetchDeals(this.category, this.region, this.fetchMode, 3, this.fetchStatus));
 
       newDeals.filter((deal) => {
         for (const d of oldDeals) {

@@ -36,10 +36,31 @@ function setStatus(fetchStatus: { s: string }, status: string, enableFunny = fal
   }
 }
 
+async function deleteLoginPrompt(driver, timeout: number) {
+  try {
+    await driver.wait(until.elementLocated(By.css("div.x1iyjqo2.xl56j7k.xshlqvt")), timeout)
+    await driver.executeScript('return document.querySelectorAll("div.x1n2onr6.x1vjfegm")[1].remove();')
+  } catch (e) {
+  }
+}
+
+async function waitUntilDialogCloses(driver, timeout: number) {
+  for (let i = 0; i < timeout / 10; i++) {
+    try {
+      await driver.wait(until.elementLocated(By.css("div.x1n2onr6.xzkaem6")), 10)
+      return
+    } catch (e) {
+    }
+  }
+  return
+}
+
 export async function fetchDeals(category: Category, region: Region, fetchMode: FetchMode, amount: number, fetchStatus: { s: string }): Promise<Deal[]> {
   const deals: Deal[] = [];
 
   if (category.custom) {
+
+    console.log("FetCHING CUSTOM!!")
     const promises: Promise<Deal[]>[] = []
     const midIndex = (categories.length - 2) / 2
 
@@ -66,7 +87,7 @@ export async function fetchDeals(category: Category, region: Region, fetchMode: 
   try {
     const driver = await new Builder()
       .forBrowser(Browser.CHROME)
-      .setChromeOptions(new chrome.Options().headless())
+      .setChromeOptions(new chrome.Options())
       .build()
     const url: string = generateUrl(category, region, fetchMode);
     console.log(`Fetching ${url}`)
@@ -76,33 +97,33 @@ export async function fetchDeals(category: Category, region: Region, fetchMode: 
 
     setStatus(fetchStatus, `Applying fetch settings for ${category.name}...`)
 
-    try {
-      await driver.wait(until.elementLocated(By.css("div.x1iyjqo2.xl56j7k.xshlqvt")), 2 * 1000)
-      await driver.executeScript('return document.querySelectorAll("div.x1n2onr6.x1vjfegm")[1].remove();')
-    } catch (e) {
-    }
-
     // Click distance filter
     await driver.wait(until.elementLocated(By.css("div.x1i10hfl.x1xmf6yo")), 10 * 1000)
 
     const distanceFilterButton = await driver.findElement(By.css("div.x1i10hfl.x1xmf6yo"))
-    await new Promise(r => setTimeout(r, 100));
+    await deleteLoginPrompt(driver, 1000);
     await distanceFilterButton.click()
 
     // Click "Radius" dropdown
     await driver.wait(until.elementLocated(By.css("label.x1ypdohk")), 10 * 1000)
+    await deleteLoginPrompt(driver, 10);
     await (await driver.findElement(By.css("label.x1ypdohk"))).click()
 
     // Click "20 km"
     await driver.wait(until.elementLocated(By.css("div.x6umtig.x1ja2u2z")), 200)
+    await deleteLoginPrompt(driver, 10);
     await (await driver.findElements(By.css("div.x6umtig.x1ja2u2z")))[4].click()
 
+    await deleteLoginPrompt(driver, 10);
     await (await driver.findElement(By.css("div.xjbqb8w.x6umtig[aria-label=\"Apply\"]"))).click() // Click Apply
+    await waitUntilDialogCloses(driver, 5000)
+    await deleteLoginPrompt(driver, 10);
     await (await driver.findElement(By.css("div.xqvfhly"))).click() // Click Sort By
+    await deleteLoginPrompt(driver, 10);
     await (await driver.findElements(By.css("div.x1lliihq")))[fetchMode.index].click() // Click fetch mode
 
-    // await (await driver.findElements(By.css("div.xqvfhly")))[3].click() // Click Date Listed
-    // await (await (await driver.findElements(By.css("div.xb57i2i.xxqldzo")))[3].findElements(By.css("div.x1lliihq")))[1].click()
+    await (await driver.findElements(By.css("div.xqvfhly")))[3].click() // Click Date Listed
+    await (await (await driver.findElements(By.css("div.xb57i2i.xxqldzo")))[3].findElements(By.css("div.x1lliihq")))[1].click()
 
     setStatus(fetchStatus, `Downloading deals from ${category.name}...`, true)
 
