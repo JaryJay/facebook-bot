@@ -29,10 +29,7 @@ export const categories: Category[] = [
   { name: 'Samsung', keyword: 'samsung' },
   { name: 'Lego', keyword: 'lego' },
   { name: 'Monitors', keyword: 'monitor' },
-  { name: 'Gaming', keyword: 'gaming' },
   { name: 'Ipads', keyword: 'ipad' },
   { name: 'Herman Miller', keyword: 'herman miller' },
-  { name: 'GPU', keyword: 'GPU' },
-  { name: 'Graphics Cards', keyword: 'graphics card' },
   { name: 'iPhones', keyword: 'iphone' },
 ]
