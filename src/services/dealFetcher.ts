@@ -85,7 +85,7 @@ export async function fetchDeals(category: Category, region: Region, fetchMode: 
   try {
     const driver = await new Builder()
       .forBrowser(Browser.CHROME)
-      .setChromeOptions(new chrome.Options())
+      .setChromeOptions(new chrome.Options().headless())
       .build()
     const url: string = generateUrl(category, region, fetchMode);
     console.log(`Fetching ${url}`)
@@ -145,7 +145,7 @@ export async function fetchDeals(category: Category, region: Region, fetchMode: 
         const imageLink = el.querySelector('img.xt7dq6l.xl1xv1r.x10wlt62.xh8yej3')?.attributes.getNamedItem("src")?.value
         const title = el.querySelector('span.x10wlt62.x1n2onr6')?.textContent
         const price = el.querySelector('span.x193iq5w.xeuugli.x13faqbe.x1vvkbs')?.textContent?.trim().toLowerCase() || "0"
-        const location = el.querySelector('span.x3x7a5m.x1nxh6w3.xi81zsa')?.textContent
+        const location = el.querySelector('span.x1nxh6w3')?.textContent
         if (!link) {
           return
         }
