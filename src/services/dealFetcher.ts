@@ -60,7 +60,7 @@ export async function fetchDeals(category: Category, region: Region, fetchMode: 
 
   if (category.custom) {
     const promises: Promise<Deal[]>[] = []
-    const midIndex = (categories.length - 2) / 2 + 2
+    const midIndex = Math.floor((categories.length - 2) / 2 + 2)
 
     // Do first half
     for (let i = 2; i < midIndex; i++) {
@@ -82,11 +82,8 @@ export async function fetchDeals(category: Category, region: Region, fetchMode: 
 
   setStatus(fetchStatus, `Preparing to fetch ${category.name}...`)
 
+  const driver = await new Builder().forBrowser(Browser.CHROME).setChromeOptions(new chrome.Options()).build()
   try {
-    const driver = await new Builder()
-      .forBrowser(Browser.CHROME)
-      .setChromeOptions(new chrome.Options().headless())
-      .build()
     const url: string = generateUrl(category, region, fetchMode);
     console.log(`Fetching ${url}`)
     setStatus(fetchStatus, `Accessing webpage for ${category.name}...`)
@@ -96,14 +93,14 @@ export async function fetchDeals(category: Category, region: Region, fetchMode: 
     setStatus(fetchStatus, `Applying fetch settings for ${category.name}...`)
 
     // Click distance filter
-    await driver.wait(until.elementLocated(By.css("div.x1i10hfl.x1xmf6yo")), 10 * 1000)
+    await driver.wait(until.elementLocated(By.css("div.x1i10hfl.x1xmf6yo")), 1000)
 
     const distanceFilterButton = await driver.findElement(By.css("div.x1i10hfl.x1xmf6yo"))
     await deleteLoginPrompt(driver, 1000);
     await distanceFilterButton.click()
 
     // Click "Radius" dropdown
-    await driver.wait(until.elementLocated(By.css("label.x1ypdohk")), 10 * 1000)
+    await driver.wait(until.elementLocated(By.css("label.x1ypdohk")), 1000)
     await deleteLoginPrompt(driver, 10);
     await (await driver.findElement(By.css("label.x1ypdohk"))).click()
 
@@ -114,11 +111,12 @@ export async function fetchDeals(category: Category, region: Region, fetchMode: 
 
     await deleteLoginPrompt(driver, 10);
     await (await driver.findElement(By.css("div.xjbqb8w.x6umtig[aria-label=\"Apply\"]"))).click() // Click Apply
-    await waitUntilDialogCloses(driver, 5000)
+    await waitUntilDialogCloses(driver, 1000)
     await deleteLoginPrompt(driver, 10);
     await (await driver.findElement(By.css("div.xqvfhly"))).click() // Click Sort By
     await deleteLoginPrompt(driver, 10);
     await (await driver.findElements(By.css("div.x1lliihq")))[fetchMode.index].click() // Click fetch mode
+    await deleteLoginPrompt(driver, 100);
 
     await (await driver.findElements(By.css("div.xqvfhly")))[3].click() // Click Date Listed
     await (await (await driver.findElements(By.css("div.xb57i2i.xxqldzo")))[3].findElements(By.css("div.x1lliihq")))[1].click()
@@ -128,14 +126,12 @@ export async function fetchDeals(category: Category, region: Region, fetchMode: 
     for (let i = 0; i < amount; i++) {
       await driver.executeScript("window.scrollTo(0, document.body.scrollHeight);")
       // Wait 1 second
-      await new Promise(r => setTimeout(r, 1000));
+      await new Promise(r => setTimeout(r, 800));
     }
 
     setStatus(fetchStatus, "Refreshing...")
 
     const document = new DOMParser().parseFromString(await driver.getPageSource(), "text/html");
-
-    await driver.quit()
 
     const div = document.querySelectorAll("div.x78zum5.x1r8uery.xdt5ytf.x1iyjqo2.xs83m0k.x1e558r4.x150jy0e")
 
@@ -179,6 +175,8 @@ export async function fetchDeals(category: Category, region: Region, fetchMode: 
   } catch (e: any) {
     console.error(`Hey! An error has occurred while fetching ${category.name}.\n${e.message}\n${e.stack}`)
     return null
+  } finally {
+    await driver.quit()
   }
 }
 

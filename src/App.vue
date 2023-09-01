@@ -125,6 +125,8 @@ export default {
           await this.fetchDeals()
           success = true
         } catch (e) {
+          console.error(e.message)
+          console.error(e.stack)
           console.log("Retrying after 1 second")
           this.fetchStatus.s = "An error occurred. Retrying..."
           // Wait 1 second
