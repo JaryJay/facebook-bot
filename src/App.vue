@@ -89,7 +89,7 @@ export default {
       fetching: false,
       fetchStatus: { s: "" },
       maxPrice: 6000,
-      category: categories[2],
+      category: categories[1],
       categories: categories,
       region: regions[0],
       regions: regions,
