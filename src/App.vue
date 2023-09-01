@@ -141,6 +141,7 @@ export default {
         throw new Error("An error was encountered")
       }
       const newDeals = filterRegions(_newDeals);
+      console.log(`Found ${_newDeals.length} deals, filtered out ${_newDeals.length - newDeals.length} deals`)
 
       newDeals.filter((deal) => {
         for (const d of oldDeals) {
