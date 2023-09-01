@@ -16,6 +16,7 @@ const allowList: string[] = [
   "St. Clements",
   "St. Jacobs",
   "Ayr",
+  "Puslinch",
 ]
 
 export function filterRegions(deals: Deal[]): Deal[] {
@@ -25,7 +26,6 @@ export function filterRegions(deals: Deal[]): Deal[] {
         return true
       }
     }
-    console.log(`Filtered out "${deal.title}" because its location is ${deal.location}`)
     return false
   })
 }
