@@ -25,6 +25,7 @@ export function filterRegions(deals: Deal[]): Deal[] {
         return true
       }
     }
+    console.log(`Filtered out "${deal.title}" because its location is ${deal.location}`)
     return false
   })
 }

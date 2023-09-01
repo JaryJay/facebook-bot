@@ -85,7 +85,7 @@ export async function fetchDeals(category: Category, region: Region, fetchMode: 
   try {
     const driver = await new Builder()
       .forBrowser(Browser.CHROME)
-      .setChromeOptions(new chrome.Options().headless())
+      .setChromeOptions(new chrome.Options())
       .build()
     const url: string = generateUrl(category, region, fetchMode);
     console.log(`Fetching ${url}`)
