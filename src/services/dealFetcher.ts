@@ -52,7 +52,7 @@ async function waitUntilDialogCloses(driver, timeout: number) {
       return
     }
   }
-  return
+  throw new Error("Dialog did not close.")
 }
 
 export async function fetchDeals(category: Category, region: Region, fetchMode: FetchMode, amount: number, fetchStatus: { s: string }): Promise<Deal[] | null> {
@@ -82,7 +82,8 @@ export async function fetchDeals(category: Category, region: Region, fetchMode: 
 
   setStatus(fetchStatus, `Preparing to fetch ${category.name}...`)
 
-  const driver = await new Builder().forBrowser(Browser.CHROME).setChromeOptions(new chrome.Options()).build()
+  const options = new chrome.Options().headless()
+  const driver = await new Builder().forBrowser(Browser.CHROME).setChromeOptions(options).build()
   try {
     const url: string = generateUrl(category, region, fetchMode);
     console.log(`Fetching ${url}`)
