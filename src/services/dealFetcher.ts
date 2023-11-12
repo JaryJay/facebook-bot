@@ -36,7 +36,7 @@ function setStatus(fetchStatus: { s: string }, status: string, enableFunny = fal
   }
 }
 
-async function deleteLoginPrompt(driver, timeout: number) {
+async function deleteLoginPrompt(driver: any, timeout: number) {
   try {
     await driver.wait(until.elementLocated(By.css("div.x1iyjqo2.xl56j7k.xshlqvt")), timeout)
     await driver.executeScript('return document.querySelectorAll("div.x1n2onr6.x1vjfegm")[1].remove();')
@@ -44,7 +44,7 @@ async function deleteLoginPrompt(driver, timeout: number) {
   }
 }
 
-async function waitUntilDialogCloses(driver, timeout: number) {
+async function waitUntilDialogCloses(driver: any, timeout: number) {
   for (let i = 0; i < timeout / 10; i++) {
     try {
       await driver.wait(until.elementLocated(By.css("div.x1n2onr6.xzkaem6")), 10)
@@ -55,7 +55,7 @@ async function waitUntilDialogCloses(driver, timeout: number) {
   throw new Error("Dialog did not close.")
 }
 
-export async function fetchDeals(category: Category, region: Region, fetchMode: FetchMode, amount: number, fetchStatus: { s: string }): Promise<Deal[] | null> {
+export async function fetchDeals(category: Category, region: Region, fetchMode: FetchMode, amount: number, fetchStatus: { s: string }): Promise<Deal[]> {
   const deals: Deal[] = [];
 
   if (category.custom) {
@@ -175,7 +175,7 @@ export async function fetchDeals(category: Category, region: Region, fetchMode: 
     return deals;
   } catch (e: any) {
     console.error(`Hey! An error has occurred while fetching ${category.name}.\n${e.message}\n${e.stack}`)
-    return null
+    return deals;
   } finally {
     await driver.quit()
   }
