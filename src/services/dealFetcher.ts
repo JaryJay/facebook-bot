@@ -83,7 +83,7 @@ export async function fetchDeals(category: Category, region: Region, fetchMode: 
 
   setStatus(fetchStatus, `Preparing to fetch ${category.name}...`)
 
-  const options = headless ? new chrome.Options().headless() : new chrome.Options()
+  const options = headless ? (new chrome.Options().headless()) : (new chrome.Options())
   const driver = await new Builder().forBrowser(Browser.CHROME).setChromeOptions(options).build()
   try {
     const url: string = generateUrl(category, region, fetchMode);
@@ -174,15 +174,12 @@ export async function fetchDeals(category: Category, region: Region, fetchMode: 
         deals.splice(i, 1)
       }
     }
-    await driver.quit()
     return deals;
   } catch (e: any) {
     console.error(`Hey! An error has occurred while fetching ${category.name}.\n${e.message}\n${e.stack}`)
     return deals;
   } finally {
-    if (headless) {
-      await driver.quit()
-    }
+    await driver.quit()
   }
 }
 
