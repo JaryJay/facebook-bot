@@ -6,6 +6,7 @@ import { FetchMode } from "./fetchModes";
 const { Builder, Browser, By, Key, until, WebDriver } = require("selenium-webdriver")
 const chrome = require("selenium-webdriver/chrome")
 
+const headless = true
 
 function generateUrl(category: Category, region: Region, fetchMode: FetchMode): string {
   if (category.all) {
@@ -38,8 +39,8 @@ function setStatus(fetchStatus: { s: string }, status: string, enableFunny = fal
 
 async function deleteLoginPrompt(driver: any, timeout: number) {
   try {
-    await driver.wait(until.elementLocated(By.css("div.x1iyjqo2.xl56j7k.xshlqvt")), timeout)
-    await driver.executeScript('return document.querySelectorAll("div.x1n2onr6.x1vjfegm")[1].remove();')
+    await driver.wait(until.elementLocated(By.css("body > div.x1n2onr6.x1vjfegm")), timeout)
+    await driver.executeScript('let divs = document.querySelectorAll("body > div.x1n2onr6.x1vjfegm"); return divs[divs.length - 1].remove();')
   } catch (e) {
   }
 }
@@ -82,7 +83,7 @@ export async function fetchDeals(category: Category, region: Region, fetchMode: 
 
   setStatus(fetchStatus, `Preparing to fetch ${category.name}...`)
 
-  const options = new chrome.Options().headless()
+  const options = headless ? new chrome.Options().headless() : new chrome.Options()
   const driver = await new Builder().forBrowser(Browser.CHROME).setChromeOptions(options).build()
   try {
     const url: string = generateUrl(category, region, fetchMode);
@@ -94,15 +95,16 @@ export async function fetchDeals(category: Category, region: Region, fetchMode: 
     setStatus(fetchStatus, `Applying fetch settings for ${category.name}...`)
 
     // Click distance filter
-    await driver.wait(until.elementLocated(By.css("div.x1i10hfl.x1xmf6yo")), 1000)
+    await driver.wait(until.elementLocated(By.css("div.x87ps6o.x1xmf6yo")), 1000)
+    await deleteLoginPrompt(driver, 10);
 
-    const distanceFilterButton = await driver.findElement(By.css("div.x1i10hfl.x1xmf6yo"))
-    await deleteLoginPrompt(driver, 1000);
+    const distanceFilterButton = await driver.findElement(By.css("div.x87ps6o.x1xmf6yo"))
+    await deleteLoginPrompt(driver, 10);
     await distanceFilterButton.click()
 
     // Click "Radius" dropdown
     await driver.wait(until.elementLocated(By.css("label.x1ypdohk")), 1000)
-    await deleteLoginPrompt(driver, 10);
+    await deleteLoginPrompt(driver, 30);
     await (await driver.findElement(By.css("label.x1ypdohk"))).click()
 
     // Click "20 km"
@@ -172,12 +174,15 @@ export async function fetchDeals(category: Category, region: Region, fetchMode: 
         deals.splice(i, 1)
       }
     }
+    await driver.quit()
     return deals;
   } catch (e: any) {
     console.error(`Hey! An error has occurred while fetching ${category.name}.\n${e.message}\n${e.stack}`)
     return deals;
   } finally {
-    await driver.quit()
+    if (headless) {
+      await driver.quit()
+    }
   }
 }
 
